@@ -1,19 +1,26 @@
 # Project Build & Run Guide
 
-This guide shows how to format, build, and run the project on Windows and macOS using vcpkg and CMake. The exact commands remain unchanged; we've simply clarified the steps and context.
+This guide explains how to format, build, and run the project across platforms and also showcases the current rendering output and threading layout used in the path tracer.
 
 ## Code Formatting
-# Format code
+
+```bash
 clang-format.exe -i src/*.h src/*.cpp
+```
 
 ## Windows: Build
+
+```powershell
 set VCPKG_ROOT="$HOME/vcpkg"
 vcpkg install
 vcpkg integrate install
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
 cmake --build build
+```
 
 ## macOS: Build
+
+```bash
 brew install vcpkg
 brew install pkg-config
 git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
@@ -22,14 +29,21 @@ vcpkg install
 vcpkg integrate install
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
 cmake --build build
+```
 
 ## Debug Build
+
+```bash
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
+```
 
 ## Release Build
+
+```bash
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release
 cmake --build build
+```
 
 ## Run (after a successful build)
 
@@ -38,6 +52,30 @@ cd build
 ./helloworld
 ```
 
+## Sample Output
 
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-g -O3 -fno-omit-frame-pointer"
-cmake --build build 
+Sphere layout overview:
+- Ground plane: large diffuse sphere at `(0, -1000, 0)`.
+- Ring of diffuse spheres: 12 objects of radius `0.62`, resting at `y = rObj` on a circle of radius `R`.
+- Overhead emissive ring: 12 light spheres of radius `0.5` at `y = 6`, each emitting colored light.
+
+```cpp
+// Ring scene layout:
+const int   N = 12;
+const float R = 2.55f;  // ring radius, gap between spheres
+const float rObj = 0.62f;
+const float objectY = rObj; // diffuse spheres rest on the ground plane
+const float lightY = 6.0f;
+const float rLight = 0.5f;
+const float emission = 30.0f;
+``` 
+
+![Sample render of the ring scene](samples.png)
+
+## Parallel Tiling Overview
+
+![Thread tiling visualization](parallel.png)
+
+
+
+ 
